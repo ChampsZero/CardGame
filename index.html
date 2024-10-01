@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo de Cartas - Batalha</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        #jogarButton, #batalhaButton {
+            font-size: 24px;
+            padding: 15px 30px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin: 10px;
+        }
+        #jogarButton:hover, #batalhaButton:hover {
+            background-color: #45a049;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 2% auto;
+            padding: 30px;
+            border: 1px solid #888;
+            width: 95%;
+            max-width: 1200px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .carta {
+            border: 2px solid #000;
+            border-radius: 10px;
+            padding: 20px;
+            width: 30%;
+            max-width: 300px;
+            text-align: center;
+            background-color: #fff;
+            margin: 10px;
+            display: inline-block;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        .carta:hover {
+            transform: scale(1.05);
+        }
+        .carta img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        #cartasContainer, #deckJogador {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+        #temporizador {
+            text-align: center;
+            font-size: 24px;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        #resultado {
+            text-align: center;
+            font-size: 24px;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        #areaBatalha {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .cartaBatalha {
+            text-align: center;
+        }
+        .cartaBatalha img {
+            max-width: 200px;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        #jogarNovamenteButton {
+            font-size: 20px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 20px;
+        }
+        #jogarNovamenteButton:hover {
+            background-color: #45a049;
+        }
+        .carta.usada {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+        #mensagemVitoria {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 1000;
+        }
+        #textoVitoria {
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+    <button id="jogarButton">JOGAR</button>
+
+    <div id="cartasModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle">Escolha suas 3 cartas</h2>
+            <div id="temporizador"></div>
+            <div id="cartasContainer"></div>
+            <div id="deckJogador"></div>
+            <div id="areaBatalha"></div>
+            <div id="resultado"></div>
+            <button id="batalhaButton" style="display: none;">BATALHA</button>
+        </div>
+    </div>
+
+    <div id="mensagemVitoria">
+        <h2 id="textoVitoria"></h2>
+    </div>
+
+    <script>
+        const cartas = [
+            { imagem: 'Imagens_atualizadas/Cartas_Human/Card_human_GS.png', valor: 9 },
+            { imagem: 'Imagens_atualizadas/Cartas_Human/Card_human_PK.png', valor: 7 },
+            { imagem: 'Imagens_atualizadas/Cartas_Human/Card_human_PD.png', valor: 5 },
+            { imagem: 'Imagens_atualizadas/Cartas_Dragon/Card_aether.png', valor: 5 },
+            { imagem:  'Imagens_atualizadas/Cartas_Dragon/Card_aqua.png', valor: 4 },
+            { imagem: 'Imagens_atualizadas/Cartas_Dragon/Card_draco.png', valor: 8 },
+            { imagem: 'Imagens_atualizadas/Cartas_Dragon/Card_fulmen.png', valor: 9 },
+            { imagem: 'Imagens_atualizadas/Cartas_Dragon/Card_glacies.png', valor: 1 },
+            { imagem: 'Imagens_atualizadas/Cartas_Dragon/Card_ignis.png', valor: 7 },
+            { imagem: 'Imagens_atualizadas/Cartas_Dragon/Card_lux.png', valor: 4 },
+            { imagem: 'Imagens_atualizadas/Cartas_Dragon/Card_terra.png', valor: 6 },
+            { imagem: 'Imagens_atualizadas/Cartas_Dragon/Card_umbra.png', valor: 10 },
+            { imagem: 'Imagens_atualizadas/Cartas_Dragon/Card_ventus.png', valor: 2 }
+            // Adicione mais cartas aqui
+        ];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const jogarButton = document.getElementById('jogarButton');
+            const batalhaButton = document.getElementById('batalhaButton');
+            const jogarNovamenteButton = document.getElementById('jogarNovamenteButton');
+            const modal = document.getElementById('cartasModal');
+            const span = document.getElementsByClassName("close")[0];
+            const cartasContainer = document.getElementById('cartasContainer');
+            const deckJogador = document.getElementById('deckJogador');
+            const temporizador = document.getElementById('temporizador');
+            const resultado = document.getElementById('resultado');
+            const modalTitle = document.getElementById('modalTitle');
+            const areaBatalha = document.getElementById('areaBatalha');
+            const mensagemVitoria = document.getElementById('mensagemVitoria');
+            const textoVitoria = document.getElementById('textoVitoria');
+            const temporizadorVitoria = document.getElementById('temporizadorVitoria');
+            const voltarInicio = document.getElementById('voltarInicio');
+
+            let deckJogadorCartas = [];
+            let deckBot = [];
+            let rodadaAtual = 0;
+            let tempoRestante = 10;
+            let intervalId;
+            let cartaEscolhidaJogador;
+            let cartaEscolhidaBot;
+            let vitoriasJogador = 0;
+            let vitoriasBot = 0;
+
+            function resetarJogo() {
+                deckJogadorCartas = [];
+                deckBot = [];
+                rodadaAtual = 0;
+                vitoriasJogador = 0;
+                vitoriasBot = 0;
+                cartaEscolhidaJogador = null;
+                cartaEscolhidaBot = null;
+                
+                batalhaButton.style.display = 'none';
+                modalTitle.textContent = "Escolha suas 3 cartas";
+                resultado.textContent = '';
+                areaBatalha.innerHTML = '';
+                deckJogador.innerHTML = '';
+                
+                modal.style.display = 'none';
+                exibirCartas();
+            }
+
+            function exibirCartas() {
+                if (rodadaAtual >= 3) {
+                    deckBot = cartasAleatorias(3);
+                    iniciarBatalha();
+                    return;
+                }
+
+                const cartasSelecionadas = cartasAleatorias(3);
+                cartasContainer.innerHTML = '';
+                temporizador.textContent = 'Tempo restante: 10s';
+
+                cartasSelecionadas.forEach((carta, index) => {
+                    const cartaElement = document.createElement('div');
+                    cartaElement.className = 'carta';
+                    cartaElement.innerHTML = `<img src="${carta.imagem}" alt="Carta ${index + 1}">`;
+                    cartaElement.addEventListener('click', () => escolherCarta(carta));
+                    cartasContainer.appendChild(cartaElement);
+                });
+
+                modal.style.display = "block";
+                iniciarTemporizador();
+            }
+
+            function cartasAleatorias(quantidade) {
+                return [...cartas].sort(() => 0.5 - Math.random()).slice(0, quantidade);
+            }
+
+            function escolherCarta(carta) {
+                deckJogadorCartas.push(carta);
+                rodadaAtual++;
+                clearInterval(intervalId);
+
+                if (rodadaAtual < 3) {
+                    exibirCartas();
+                } else {
+                    deckBot = cartasAleatorias(3);
+                    iniciarBatalha();
+                }
+            }
+
+            function iniciarTemporizador() {
+                tempoRestante = 10;
+                clearInterval(intervalId);
+                intervalId = setInterval(() => {
+                    tempoRestante--;
+                    temporizador.textContent = `Tempo restante: ${tempoRestante}s`;
+                    if (tempoRestante <= 0) {
+                        clearInterval(intervalId);
+                        const cartaAleatoria = cartasAleatorias(1)[0];
+                        escolherCarta(cartaAleatoria);
+                    }
+                }, 1000);
+            }
+
+            function iniciarBatalha() {
+                modalTitle.textContent = "Batalha";
+                cartasContainer.innerHTML = '';
+                temporizador.textContent = '';
+                resultado.textContent = '';
+                batalhaButton.style.display = 'none';
+
+                deckJogador.innerHTML = '<h3>Seu deck:</h3>';
+                deckJogadorCartas.forEach(carta => {
+                    const cartaElement = document.createElement('div');
+                    cartaElement.className = 'carta';
+                    cartaElement.innerHTML = `<img src="${carta.imagem}" alt="Carta">`;
+                    cartaElement.addEventListener('click', () => selecionarCartaBatalha(carta));
+                    deckJogador.appendChild(cartaElement);
+                });
+
+                atualizarAreaBatalha();
+            }
+
+            function selecionarCartaBatalha(carta) {
+                cartaEscolhidaJogador = carta;
+                
+                deckJogador.querySelectorAll('.carta').forEach(el => {
+                    el.style.opacity = el.querySelector('img').src === carta.imagem ? '1' : '0.5';
+                });
+                
+                atualizarAreaBatalha();
+                batalhaButton.style.display = 'block';
+            }
+
+            function atualizarAreaBatalha() {
+                areaBatalha.innerHTML = `
+                    <div class="cartaBatalha">
+                        <h4>Sua carta</h4>
+                        ${cartaEscolhidaJogador ? `
+                            <img src="${cartaEscolhidaJogador.imagem}" alt="Sua carta">
+                            <p>Valor: ${cartaEscolhidaJogador.valor}</p>
+                        ` : '<p>Selecione uma carta</p>'}
+                    </div>
+                    <div class="cartaBatalha">
+                        <h4>Carta do Bot</h4>
+                        <p>?</p>
+                    </div>
+                `;
+            }
+
+            function realizarBatalha() {
+                cartaEscolhidaBot = deckBot[Math.floor(Math.random() * deckBot.length)];
+
+                areaBatalha.innerHTML = `
+                    <div class="cartaBatalha">
+                        <h4>Sua carta</h4>
+                        <img src="${cartaEscolhidaJogador.imagem}" alt="Sua carta">
+                        <p>Valor: ${cartaEscolhidaJogador.valor}</p>
+                    </div>
+                    <div class="cartaBatalha">
+                        <h4>Carta do Bot</h4>
+                        <img src="${cartaEscolhidaBot.imagem}" alt="Carta do bot">
+                        <p>Valor: ${cartaEscolhidaBot.valor}</p>
+                    </div>
+                `;
+
+                let mensagem = '';
+
+                if (cartaEscolhidaJogador.valor > cartaEscolhidaBot.valor) {
+                    mensagem = "Você venceu esta rodada!";
+                    vitoriasJogador++;
+                } else if (cartaEscolhidaJogador.valor < cartaEscolhidaBot.valor) {
+                    mensagem = "O bot venceu esta rodada!";
+                    vitoriasBot++;
+                } else {
+                    mensagem = "Empate nesta rodada!";
+                }
+
+                resultado.innerHTML = mensagem;
+
+                marcarCartaComoUsada(cartaEscolhidaJogador);
+                
+                deckJogadorCartas = deckJogadorCartas.filter(c => c !== cartaEscolhidaJogador);
+                deckBot = deckBot.filter(c => c !== cartaEscolhidaBot);
+
+                batalhaButton.style.display = 'none';
+
+                if (vitoriasJogador === 2 || vitoriasBot === 2) {
+                    setTimeout(() => finalizarJogo(vitoriasJogador === 2), 3000);
+                } else if (deckJogadorCartas.length === 0) {
+                    setTimeout(() => finalizarJogo(vitoriasJogador > vitoriasBot), 3000);
+                } else {
+                    setTimeout(iniciarProximaRodada, 3000);
+                }
+            }
+
+            function marcarCartaComoUsada(carta) {
+                const cartasElements = deckJogador.querySelectorAll('.carta');
+                cartasElements.forEach(el => {
+                    if (el.querySelector('img').src === carta.imagem) {
+                        el.classList.add('usada');
+                    }
+                });
+            }
+
+            function iniciarProximaRodada() {
+                cartaEscolhidaJogador = null;
+                cartaEscolhidaBot = null;
+                batalhaButton.textContent = "BATALHA";
+                batalhaButton.onclick = realizarBatalha;
+                batalhaButton.style.display = 'none';
+                resultado.textContent = '';
+                areaBatalha.innerHTML = '';
+                iniciarBatalha();
+            }
+
+            
+
+            jogarButton.addEventListener('click', () => {
+                resetarJogo();
+            });
+
+            batalhaButton.addEventListener('click', realizarBatalha);
+
+            span.onclick = function() {
+                modal.style.display = "none";
+                clearInterval(intervalId);
+            }
+
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                    clearInterval(intervalId);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
