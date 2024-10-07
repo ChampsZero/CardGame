@@ -1,20 +1,348 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jogo de Cartas - Batalha</title>
+    <link rel="shortcut icon" href="logo_mao.ico" type="image/x-icon">
+    <title>JOKENPO 2</title>
     <style>
-        body, html {
-            height: 100%;
+        body {
+            font-family: Arial, sans-serif;
             margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #f0f0f0;
+        }
+
+        #jogarButton {
+            font-size: 24px;
+            padding: 10px 20px;
+            background-color: #000000;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+        }
+
+        #popupEscolha {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        #cartasEscolha {
             display: flex;
             justify-content: center;
             align-items: center;
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
+            gap: 10px;
         }
-        #jogarButton, #batalhaButton {
+
+        #cartasEscolha img {
+            width: 150px;
+            height: 225px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        #cartasEscolha img:hover {
+            transform: scale(1.05);
+        }
+
+        #timer {
+            font-size: 24px;
+            text-align: center;
+            font-weight: bold;
+            color: #000000;
+            /* Cor padrão para o modo claro */
+           
+            /* Fundo padrão para o modo claro */
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark-mode #timer {
+            color: #000000;
+            /* Cor para o modo escuro */
+            
+            /* Fundo para o modo escuro */
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+        }
+
+        #jogoArea {
+            display: none;
+            flex-grow: 1;
+            position: relative;
+        }
+
+        #maoJogador {
+            display: flex;
+            justify-content: center;
+            position: absolute;
+            bottom: 20px;
+            left: 60%;
+            /* Ajustado para mover a mão mais para a direita */
+            transform: translateX(-50%);
+        }
+
+        #maoJogador img {
+            width: 190px;
+            height: 265px;
+            margin: 0 10px;
+            transition: transform 0.3s ease;
+        }
+
+        #maoJogador img:hover {
+            transform: scale(1.05);
+        }
+
+        #deck img {
+            width: 200px;
+            height: 300px;
+            transition: transform 0.3s ease;
+        }
+
+        #deck img:hover {
+            transform: scale(1.05);
+        }
+
+        #areaJogo {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 100%;
+            padding: 20px;
+        }
+
+        #areaBot,
+        #areaJogador {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #cartaBot,
+        #maoJogador img {
+            width: 150px;
+            height: 225px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        #maoJogador img:hover {
+            transform: scale(1.05);
+        }
+
+        #infoJogo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #jogarRodadaButton {
+            font-size: 18px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: none;
+        }
+
+        #comparacaoCartas {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #comparacaoCartas .carta {
+            width: 300px;
+            height: 450px;
+            margin: 0 50px;
+        }
+
+        #comparacaoCartas .vs {
+            font-size: 72px;
+            color: white;
+            font-weight: bold;
+        }
+
+        #fecharComparacao {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            color: white;
+            cursor: pointer;
+        }
+
+        #areaBatalha {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #areaBatalha .carta {
+            width: 200px;
+            height: 300px;
+            margin: 0 50px;
+        }
+
+        #areaBatalha .vs {
+            font-size: 72px;
+            color: white;
+            font-weight: bold;
+        }
+
+        #botaoBatalha {
+            position: absolute;
+            bottom: 50px;
+            font-size: 24px;
+            padding: 10px 20px;
+            background-color: #000000;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+        }
+
+        #botaoBatalha:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        #resultadoBatalha {
+            position: absolute;
+            top: 50px;
+            font-size: 36px;
+            color: white;
+            text-align: center;
+        }
+
+        #flipCard {
+            width: 300px;
+            height: 400px;
+            perspective: 1000px;
+            margin: 50px auto;
+        }
+
+        #flipCardInner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 1s;
+            transform-style: preserve-3d;
+        }
+
+        #flipCard.flipped #flipCardInner {
+            transform: rotateY(360deg);
+        }
+
+        #flipCardFront,
+        #flipCardBack {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+        }
+
+        #flipCardFront,
+        #flipCardBack {
+            background-color: transparent;
+        }
+
+        #flipCardFront {
+            color: black;
+        }
+
+        #flipCardBack {
+            color: white;
+            transform: rotateY(180deg);
+        }
+
+        #jogarButton {
+            display: block;
+            margin: 20px auto;
+        }
+
+        #popupEscolha {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        #jogoArea {
+            display: none;
+        }
+
+        #placar {
+            font-size: 36px;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: inline-flex;
+            text-align: center;
+        }
+
+        #placar span {
+            display: inline-flex;
+            min-width: 40px;
+            text-align: justify;
+        }
+
+        #placar .jogador {
+            color: #4CAF50;
+        }
+
+        #placar .bot {
+            color: #f44336;
+        }
+
+        #rodada {
+            font-size: 24px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        #jogarNovamenteButton {
+            display: none;
             font-size: 24px;
             padding: 15px 30px;
             background-color: #4CAF50;
@@ -22,413 +350,587 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            transition: background-color 0.3s;
-            margin: 10px;
+            margin: 20px auto;
         }
-        #jogarButton:hover, #batalhaButton:hover {
+
+        #resultadoFinal {
+            font-size: 36px;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+
+        }
+
+        #jogarCartaButton:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #areaBatalha {
+            display: none;
+            /* outros estilos para a área de batalha */
+        }
+
+        #jogarCartaButton {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #jogarCartaButton:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        #jogarCartaButton:hover:not(:disabled) {
             background-color: #45a049;
         }
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.4);
+
+        #deckArea {
+            position: relative;
+            width: 120px;
+            /* Ajuste conforme necessário */
+            height: 180px;
+            /* Ajuste conforme necessário */
+            margin: 20px auto;
         }
-        .modal-content {
-            background-color: #fefefe;
-            margin: 2% auto;
-            padding: 30px;
-            border: 1px solid #888;
-            width: 95%;
-            max-width: 1200px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+
+        #jogarCartaButton {
+            position: absolute;
+            top: -40px;
+            /* Ajuste conforme necessário */
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
         }
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
+
+        #jogarCartaButton:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        #jogarCartaButton:hover:not(:disabled) {
+            background-color: #45a049;
+        }
+
+        #deck {
+            width: 100px;
+            height: 150px;
+            background-size: cover;
             cursor: pointer;
         }
-        .close:hover,
-        .close:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
+
+        #maoJogador {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
         }
-        .carta {
-            border: 2px solid #000;
-            border-radius: 10px;
-            padding: 20px;
-            width: 30%;
-            max-width: 300px;
-            text-align: center;
-            background-color: #fff;
-            margin: 10px;
-            display: inline-block;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+
+        #maoJogador img {
+            width: 150px;
+            height: 225px;
             cursor: pointer;
-            transition: transform 0.3s;
+            transition: transform 0.3s ease;
         }
-        .carta:hover {
+
+        #maoJogador img:hover {
+            transform: translateY(-10px);
+        }
+
+        #deckImage {
+            width: 200px;
+            height: 300px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        #deckImage:hover {
             transform: scale(1.05);
         }
-        .carta img {
-            max-width: 100%;
-            height: auto;
+
+        #telaFimJogo {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        #telaFimJogo h2 {
+            font-size: 2em;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        #telaFimJogo p {
+            font-size: 1.2em;
+            color: white;
+            margin: 10px 0;
+            -webkit-text-stroke-width: 2px;
+            -webkit-text-stroke-color: #000;
+            font-size: 3em;
+            color: #fffdd9;
+        }
+
+        #voltarInicioButton {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            background-color: #000000;
+            color: white;
+            border: none;
             border-radius: 5px;
         }
-        #cartasContainer, #deckJogador {
+
+        #voltarInicioButton:hover {
+            background-color: #ffffff;
+            color: #000000;
+        }
+
+        .dark-mode-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1001;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .dark-mode-toggle svg {
+            width: 24px;
+            height: 24px;
+            fill: #000;
+        }
+
+        body.dark-mode {
+            background-color: #333;
+            color: #fff;
+        }
+
+        body.dark-mode .dark-mode-toggle svg {
+            fill: #fff;
+        }
+
+        /* Adicione mais estilos para dark mode conforme necessário */
+
+        /* Novo estilo para garantir que o traço fique visível no modo escuro */
+        body.dark-mode #placar {
+            background-color: #222;
+            color: #fff;
+            /* Isso garante que o traço fique branco no modo escuro */
+        }
+
+        body.dark-mode #placar .jogador {
+            color: #8BC34A;
+            /* Verde mais claro para melhor contraste no modo escuro */
+        }
+
+        body.dark-mode #placar .bot {
+            color: #FF5252;
+            /* Vermelho mais claro para melhor contraste no modo escuro */
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1001;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
             display: flex;
             justify-content: center;
             align-items: center;
-            flex-wrap: wrap;
-        }
-        h2 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 28px;
-        }
-        #temporizador {
-            text-align: center;
-            font-size: 24px;
-            margin-top: 20px;
-            font-weight: bold;
-        }
-        #resultado {
-            text-align: center;
-            font-size: 24px;
-            margin-top: 20px;
-            font-weight: bold;
-        }
-        #areaBatalha {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            margin-top: 20px;
-        }
-        .cartaBatalha {
-            text-align: center;
-        }
-        .cartaBatalha img {
-            max-width: 200px;
-            height: auto;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        #jogarNovamenteButton {
             font-size: 20px;
-            padding: 10px 20px;
-            background-color: #4CAF50;
+            transition: background-color 0.3s;
+        }
+
+        .theme-toggle:hover {
+            background-color: #555;
+        }
+
+        body.dark-mode {
+            --bg-color: #000000;
+            --text-color: #fff;
+            --card-bg: #444;
+            --card-border: #555;
+        }
+
+        body.dark-mode button {
+            background-color: #ffffff;
+            color: black;
+        }
+
+        body.dark-mode button:hover {
+            background-color: #cccccc;
+        }
+
+        /* Adicione mais estilos para dark mode conforme necessário */
+
+        #jogarButton,
+        #botaoBatalha {
+            font-size: 36px;
+            padding: 20px 40px;
+            background-color: #000000;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            transition: background-color 0.3s;
-            margin-top: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, color 0.3s ease;
         }
-        #jogarNovamenteButton:hover {
-            background-color: #45a049;
+
+        #jogarButton {
+            display: block;
+            margin: 20px auto;
         }
-        .carta.usada {
-            opacity: 0.3;
-            pointer-events: none;
+
+        #botaoBatalha {
+            position: absolute;
+            bottom: 50px;
         }
-        #mensagemVitoria {
+
+        #jogarButton:hover,
+        #botaoBatalha:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        body.dark-mode #jogarButton,
+        body.dark-mode #botaoBatalha {
+            background-color: #ffffff;
+            color: #000000;
+        }
+
+        body.dark-mode #jogarButton:hover,
+        body.dark-mode #botaoBatalha:hover {
+            background-color: #cccccc;
+            box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
+        }
+
+        #desistirButton {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            font-size: 16px;
+            padding: 8px 16px;
+            background-color: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #desistirButton:hover {
+            background-color: #ff0000;
+        }
+
+        #confirmacaoDesistir {
             display: none;
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background-color: rgba(0, 0, 0, 0.8);
+            background-color: rgb(0, 0, 0);
             color: white;
             padding: 20px;
             border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
             text-align: center;
             z-index: 1000;
         }
-        #textoVitoria {
-            font-size: 24px;
-        }
-    </style>
-</head>
-<body>
-    <button id="jogarButton">JOGAR</button>
 
-    <div id="cartasModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2 id="modalTitle">Escolha suas 3 cartas</h2>
-            <div id="temporizador"></div>
-            <div id="cartasContainer"></div>
-            <div id="deckJogador"></div>
-            <div id="areaBatalha"></div>
-            <div id="resultado"></div>
-            <button id="batalhaButton" style="display: none;">BATALHA</button>
+        #confirmacaoDesistir button {
+            margin: 10px;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #simDesistir {
+            background-color: #ff4444;
+            color: white;
+        }
+
+        #naoDesistir {
+            background-color: #44ff44;
+            color: black;
+        }
+
+        body.dark-mode #confirmacaoDesistir {
+            background-color: #ffffff;
+            color: rgb(0, 0, 0);
+        }
+
+        #jogoArea {
+            position: relative;
+            /* Adicione esta linha */
+        }
+
+        #desistirButton {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 16px;
+            padding: 8px 16px;
+            background-color: #ff4444;
+            color: rgb(0, 0, 0);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #desistirButton:hover {
+            background-color: #ff0000;
+        }
+
+        #confirmacaoDesistir {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgb(3, 3, 3);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            z-index: 1000;
+        }
+
+        .desistirButton {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 16px;
+            padding: 10px 20px;
+            background-color: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 1px;
+            z-index: 1000;
+        }
+
+        .desistirButton:hover {
+            background-color: #ff0000;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .desistirButton:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark-mode .desistirButton {
+            background-color: #ff6666;
+            color: #000000;
+        }
+
+        body.dark-mode .desistirButton:hover {
+            background-color: #ff4444;
+        }
+
+        /* ... outros estilos ... */
+
+        #infoJogo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #rodada {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        #placar {
+            font-size: 36px;
+            font-weight: bold;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 200px;
+        }
+
+        #placar span {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #placar .jogador {
+            color: #4CAF50;
+            flex-grow: 1;
+            text-align: right;
+            padding-right: 10px;
+        }
+
+        #placar .separador {
+            padding: 0 10px;
+        }
+
+        #placar .bot {
+            color: #f44336;
+            flex-grow: 1;
+            text-align: left;
+            padding-left: 10px;
+        }
+
+        body.dark-mode #placar {
+            background-color: #222;
+            color: #fff;
+        }
+
+        body.dark-mode #placar .jogador {
+            color: #8BC34A;
+        }
+
+        body.dark-mode #placar .bot {
+            color: #FF5252;
+        }
+
+        /* ... outros estilos ... */
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()">
+        <i class="fas fa-moon"></i>
+    </button>
+    <div id="flipCard">
+        <div id="flipCardInner">
+            <div id="flipCardFront">
+                <img src="Imagens_atualizadas/Verso_card.png" alt="Verso da Carta" style="width:100%;height:100%;">
+            </div>
+            <div id="flipCardBack">
+                <img src="Imagens_atualizadas/Verso_card.png" alt="Verso da Carta" style="width:100%;height:100%;">
+            </div>
         </div>
     </div>
+    <button id="jogarButton">JOGAR</button>
 
-    <div id="mensagemVitoria">
-        <h2 id="textoVitoria"></h2>
+    <div id="popupEscolha">
+        <div id="timer">10</div>
+        <div id="cartasEscolha"></div>
     </div>
 
-    <script>
-        const cartas = [
-            { imagem: 'Imagens_atualizadas/Cartas_Human/Card_human_GS.png', valor: 9 },
-            { imagem: 'Imagens_atualizadas/Cartas_Human/Card_human_PK.png', valor: 7 },
-            { imagem: 'Imagens_atualizadas/Cartas_Human/Card_human_PD.png', valor: 5 },
-            { imagem: 'Imagens_atualizadas/Cartas_Dragon/Card_aether.png', valor: 5 },
-            { imagem:  'Imagens_atualizadas/Cartas_Dragon/Card_aqua.png', valor: 4 },
-            { imagem: 'Imagens_atualizadas/Cartas_Dragon/Card_draco.png', valor: 8 },
-            { imagem: 'Imagens_atualizadas/Cartas_Dragon/Card_fulmen.png', valor: 9 },
-            { imagem: 'Imagens_atualizadas/Cartas_Dragon/Card_glacies.png', valor: 1 },
-            { imagem: 'Imagens_atualizadas/Cartas_Dragon/Card_ignis.png', valor: 7 },
-            { imagem: 'Imagens_atualizadas/Cartas_Dragon/Card_lux.png', valor: 4 },
-            { imagem: 'Imagens_atualizadas/Cartas_Dragon/Card_terra.png', valor: 6 },
-            { imagem: 'Imagens_atualizadas/Cartas_Dragon/Card_umbra.png', valor: 10 },
-            { imagem: 'Imagens_atualizadas/Cartas_Dragon/Card_ventus.png', valor: 2 }
-            // Adicione mais cartas aqui
-        ];
+    <div id="jogoArea">
+        <button id="desistirButtonJogo" class="desistirButton">Desistir</button>
+        <div id="infoJogo">
+            <div id="rodada">Rodada 1</div>
+            <div id="placar">
+                <span class="jogador">0</span>
+                <span class="separador">-</span>
+                <span class="bot">0</span>
+            </div>
+        </div>
+        <div id="areaJogo">
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const jogarButton = document.getElementById('jogarButton');
-            const batalhaButton = document.getElementById('batalhaButton');
-            const jogarNovamenteButton = document.getElementById('jogarNovamenteButton');
-            const modal = document.getElementById('cartasModal');
-            const span = document.getElementsByClassName("close")[0];
-            const cartasContainer = document.getElementById('cartasContainer');
-            const deckJogador = document.getElementById('deckJogador');
-            const temporizador = document.getElementById('temporizador');
-            const resultado = document.getElementById('resultado');
-            const modalTitle = document.getElementById('modalTitle');
-            const areaBatalha = document.getElementById('areaBatalha');
-            const mensagemVitoria = document.getElementById('mensagemVitoria');
-            const textoVitoria = document.getElementById('textoVitoria');
-            const temporizadorVitoria = document.getElementById('temporizadorVitoria');
-            const voltarInicio = document.getElementById('voltarInicio');
-
-            let deckJogadorCartas = [];
-            let deckBot = [];
-            let rodadaAtual = 0;
-            let tempoRestante = 10;
-            let intervalId;
-            let cartaEscolhidaJogador;
-            let cartaEscolhidaBot;
-            let vitoriasJogador = 0;
-            let vitoriasBot = 0;
-
-            function resetarJogo() {
-                deckJogadorCartas = [];
-                deckBot = [];
-                rodadaAtual = 0;
-                vitoriasJogador = 0;
-                vitoriasBot = 0;
-                cartaEscolhidaJogador = null;
-                cartaEscolhidaBot = null;
-                
-                batalhaButton.style.display = 'none';
-                modalTitle.textContent = "Escolha suas 3 cartas";
-                resultado.textContent = '';
-                areaBatalha.innerHTML = '';
-                deckJogador.innerHTML = '';
-                
-                modal.style.display = 'none';
-                exibirCartas();
-            }
-
-            function exibirCartas() {
-                if (rodadaAtual >= 3) {
-                    deckBot = cartasAleatorias(3);
-                    iniciarBatalha();
-                    return;
-                }
-
-                const cartasSelecionadas = cartasAleatorias(3);
-                cartasContainer.innerHTML = '';
-                temporizador.textContent = 'Tempo restante: 10s';
-
-                cartasSelecionadas.forEach((carta, index) => {
-                    const cartaElement = document.createElement('div');
-                    cartaElement.className = 'carta';
-                    cartaElement.innerHTML = `<img src="${carta.imagem}" alt="Carta ${index + 1}">`;
-                    cartaElement.addEventListener('click', () => escolherCarta(carta));
-                    cartasContainer.appendChild(cartaElement);
-                });
-
-                modal.style.display = "block";
-                iniciarTemporizador();
-            }
-
-            function cartasAleatorias(quantidade) {
-                return [...cartas].sort(() => 0.5 - Math.random()).slice(0, quantidade);
-            }
-
-            function escolherCarta(carta) {
-                deckJogadorCartas.push(carta);
-                rodadaAtual++;
-                clearInterval(intervalId);
-
-                if (rodadaAtual < 3) {
-                    exibirCartas();
-                } else {
-                    deckBot = cartasAleatorias(3);
-                    iniciarBatalha();
-                }
-            }
-
-            function iniciarTemporizador() {
-                tempoRestante = 10;
-                clearInterval(intervalId);
-                intervalId = setInterval(() => {
-                    tempoRestante--;
-                    temporizador.textContent = `Tempo restante: ${tempoRestante}s`;
-                    if (tempoRestante <= 0) {
-                        clearInterval(intervalId);
-                        const cartaAleatoria = cartasAleatorias(1)[0];
-                        escolherCarta(cartaAleatoria);
-                    }
-                }, 1000);
-            }
-
-            function iniciarBatalha() {
-                modalTitle.textContent = "Batalha";
-                cartasContainer.innerHTML = '';
-                temporizador.textContent = '';
-                resultado.textContent = '';
-                batalhaButton.style.display = 'none';
-
-                deckJogador.innerHTML = '<h3>Seu deck:</h3>';
-                deckJogadorCartas.forEach(carta => {
-                    const cartaElement = document.createElement('div');
-                    cartaElement.className = 'carta';
-                    cartaElement.innerHTML = `<img src="${carta.imagem}" alt="Carta">`;
-                    cartaElement.addEventListener('click', () => selecionarCartaBatalha(carta));
-                    deckJogador.appendChild(cartaElement);
-                });
-
-                atualizarAreaBatalha();
-            }
-
-            function selecionarCartaBatalha(carta) {
-                cartaEscolhidaJogador = carta;
-                
-                deckJogador.querySelectorAll('.carta').forEach(el => {
-                    el.style.opacity = el.querySelector('img').src === carta.imagem ? '1' : '0.5';
-                });
-                
-                atualizarAreaBatalha();
-                batalhaButton.style.display = 'block';
-            }
-
-            function atualizarAreaBatalha() {
-                areaBatalha.innerHTML = `
-                    <div class="cartaBatalha">
-                        <h4>Sua carta</h4>
-                        ${cartaEscolhidaJogador ? `
-                            <img src="${cartaEscolhidaJogador.imagem}" alt="Sua carta">
-                            <p>Valor: ${cartaEscolhidaJogador.valor}</p>
-                        ` : '<p>Selecione uma carta</p>'}
+            <button id="jogarRodadaButton" onclick="jogarRodada()">Jogar Rodada</button>
+            <div id="areaJogador">
+                <div id="maoJogador"></div>
+                <div id="deckArea">
+                    <div id="deck">
+                        <img id="deckImage" src="Imagens_atualizadas/Verso_card.png" alt="Deck">
                     </div>
-                    <div class="cartaBatalha">
-                        <h4>Carta do Bot</h4>
-                        <p>?</p>
-                    </div>
-                `;
-            }
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="comparacaoCartas">
+        <img id="cartaJogadorAmpliada" class="carta" src="" alt="Carta do Jogador">
+        <div class="vs">X</div>
+        <img id="cartaBotAmpliada" class="carta" src="" alt="Carta do Bot">
+        <div id="fecharComparacao" onclick="fecharComparacao()">X</div>
+    </div>
+    <div id="areaBatalha" style="display: none;">
+        <img id="cartaJogadorBatalha" class="carta" src="" alt="Carta do Jogador">
+        <div class="vs">VS</div>
+        <img id="cartaBotBatalha" class="carta" src="" alt="Carta do Bot">
+        <button id="botaoBatalha" onclick="iniciarBatalha()">BATALHA</button>
+        <div id="resultadoBatalha"></div>
+        <div id="vantagemElemento"></div>
+    </div>
 
-            function realizarBatalha() {
-                cartaEscolhidaBot = deckBot[Math.floor(Math.random() * deckBot.length)];
+    <button id="jogarNovamenteButton">Jogar Novamente</button>
+    <div id="telaFimJogo">
+        <h2>Fim de Jogo</h2>
+        <p id="resultadoFinal"></p>
+        <p>Placar Final:</p>
+        <p id="placarFinal"></p>
+        <button id="voltarInicioButton">VOLTAR PARA O INÍCIO</button>
+    </div>
+    <audio id="puxarCardAudio" src="puxarCard.mp3"></audio>
+    <script src="jogo.js"></script>
+    <script src="darkMode.js"></script>
 
-                areaBatalha.innerHTML = `
-                    <div class="cartaBatalha">
-                        <h4>Sua carta</h4>
-                        <img src="${cartaEscolhidaJogador.imagem}" alt="Sua carta">
-                        <p>Valor: ${cartaEscolhidaJogador.valor}</p>
-                    </div>
-                    <div class="cartaBatalha">
-                        <h4>Carta do Bot</h4>
-                        <img src="${cartaEscolhidaBot.imagem}" alt="Carta do bot">
-                        <p>Valor: ${cartaEscolhidaBot.valor}</p>
-                    </div>
-                `;
+    <div id="confirmacaoDesistir" style="display: none;">
+        <p>VOCÊ QUER DESISTIR DO JOGO?</p>
+        <button id="simDesistir">Sim</button>
+        <button id="naoDesistir">Não</button>
+    </div>
+<script>
+const desistirButton = document.getElementById('desistirButtonJogo');
+const confirmacaoDesistir = document.getElementById('confirmacaoDesistir');
+const simDesistir = document.getElementById('simDesistir');
+const naoDesistir = document.getElementById('naoDesistir');
 
-                let mensagem = '';
+// Adicione este código onde você inicializa outros event listeners
+desistirButton.addEventListener('click', () => {
+    confirmacaoDesistir.style.display = 'block';
+});
 
-                if (cartaEscolhidaJogador.valor > cartaEscolhidaBot.valor) {
-                    mensagem = "Você venceu esta rodada!";
-                    vitoriasJogador++;
-                } else if (cartaEscolhidaJogador.valor < cartaEscolhidaBot.valor) {
-                    mensagem = "O bot venceu esta rodada!";
-                    vitoriasBot++;
-                } else {
-                    mensagem = "Empate nesta rodada!";
-                }
+simDesistir.addEventListener('click', () => {
+    window.location.reload(); // Recarrega a página para voltar ao início
+});
 
-                resultado.innerHTML = mensagem;
+naoDesistir.addEventListener('click', () => {
+    confirmacaoDesistir.style.display = 'none';
+});
 
-                marcarCartaComoUsada(cartaEscolhidaJogador);
-                
-                deckJogadorCartas = deckJogadorCartas.filter(c => c !== cartaEscolhidaJogador);
-                deckBot = deckBot.filter(c => c !== cartaEscolhidaBot);
-
-                batalhaButton.style.display = 'none';
-
-                if (vitoriasJogador === 2 || vitoriasBot === 2) {
-                    setTimeout(() => finalizarJogo(vitoriasJogador === 2), 3000);
-                } else if (deckJogadorCartas.length === 0) {
-                    setTimeout(() => finalizarJogo(vitoriasJogador > vitoriasBot), 3000);
-                } else {
-                    setTimeout(iniciarProximaRodada, 3000);
-                }
-            }
-
-            function marcarCartaComoUsada(carta) {
-                const cartasElements = deckJogador.querySelectorAll('.carta');
-                cartasElements.forEach(el => {
-                    if (el.querySelector('img').src === carta.imagem) {
-                        el.classList.add('usada');
-                    }
-                });
-            }
-
-            function iniciarProximaRodada() {
-                cartaEscolhidaJogador = null;
-                cartaEscolhidaBot = null;
-                batalhaButton.textContent = "BATALHA";
-                batalhaButton.onclick = realizarBatalha;
-                batalhaButton.style.display = 'none';
-                resultado.textContent = '';
-                areaBatalha.innerHTML = '';
-                iniciarBatalha();
-            }
-
-            
-
-            jogarButton.addEventListener('click', () => {
-                resetarJogo();
-            });
-
-            batalhaButton.addEventListener('click', realizarBatalha);
-
-            span.onclick = function() {
-                modal.style.display = "none";
-                clearInterval(intervalId);
-            }
-
-            window.onclick = function(event) {
-                if (event.target == modal) {
-                    modal.style.display = "none";
-                    clearInterval(intervalId);
-                }
-            }
-        });
-    </script>
+</script>
+    
 </body>
+
 </html>
